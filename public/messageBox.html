@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send a Message</title>
+    <!-- <link rel="stylesheet" href="messagebox.css"> -->
+    <style>
+         body {
+     margin: 0;
+     padding: 0;
+     font-family: Arial, sans-serif;
+     background-color: #f7f7f7;
+ }
+
+ .container {
+     max-width: 600px;
+     margin: 100px auto;
+     padding: 20px;
+     background-color: #fff;
+     border-radius: 10px;
+     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+     text-align: center;
+ }
+
+ .container h1 {
+     color: #333;
+ }
+
+ .message-box {
+     margin-top: 30px;
+ }
+
+ .message-box textarea {
+     width: 100%;
+     padding: 10px;
+     margin-bottom: 20px;
+     border: 2px solid #ddd;
+     border-radius: 5px;
+     resize: none;
+ }
+
+ .message-box button {
+     padding: 10px 20px;
+     background-color: #007bff;
+     color: #fff;
+     border: none;
+     border-radius: 5px;
+     cursor: pointer;
+     transition: background-color 0.3s ease;
+ }
+
+ .message-box button:hover {
+     background-color: #0056b3;
+ }
+
+ .message-box button:focus {
+     outline: none;
+ }
+
+ ::-webkit-input-placeholder {
+     color: #bbb;
+ }
+
+ :-moz-placeholder {
+     color: #bbb;
+ }
+
+ ::-moz-placeholder {
+     color: #bbb;
+ }
+
+ :-ms-input-placeholder {
+     color: #bbb;
+ }
+
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="heading"></h1>
+        <div class="message-box">
+            <textarea id="messageInput" placeholder="Write your message here..."></textarea>
+            <button id="sendMessageBtn">Send Message</button>
+        </div>
+    </div>
+
+</body>
+<script >
+    document.addEventListener("DOMContentLoaded", () => {
+            const sendMessageBtn = document.getElementById("sendMessageBtn");
+            const heading = document.querySelector(".heading");
+
+            // Extracting the unique link from the URL pathname
+            const urlPathname = window.location.pathname;
+            const uniqueLink = urlPathname.substring(urlPathname.lastIndexOf("/") + 1);
+            heading.innerText = `Send a Message to ${uniqueLink}`;
+
+            sendMessageBtn.addEventListener("click", () => {
+                const messageInput = document.getElementById("messageInput").value;
+                console.log(messageInput)
+                if (messageInput === "") {
+                    alert("Please enter a message.");
+                    return;
+                }
+
+                // Fetch to send message to the route
+                fetch(`http://localhost:5500/message/send/${uniqueLink}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ message: messageInput }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        // console.log(data);
+                        alert("Message sent successfully!");
+                        document.getElementById("messageInput").value = ""; // Clear message input
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                        alert("An error occurred while sending the message.");
+                    });
+            });
+        });
+
+</script>
+
+</html>

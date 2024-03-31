@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shadowfy | send anonymous message for fun</title>
+    <meta name="description" content="Discover Shadowfy, a unique platform designed to provide a safe and enjoyable 
+        space for expressing thoughts and feelings without fear of judgment. 
+        Join a community where sharing your opinions and emotions is encouraged, free from societal pressures.
+        Start meaningful conversations with friends on Shadowfy today.">
+    <meta name="keywords"
+        content="Shadowfy, platform, safe space, express thoughts, express feelings, no judgment, community, share opinions, share emotions, meaningful conversations, friends">
+    <!-- <link rel="stylesheet" href="/public/style.css"> -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            margin: 20px auto;
+            width: 80%;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+
+        #error {
+            color: red;
+            margin-top: 10px;
+        }
+
+        .share-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .share-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div>
+            <h1>Logo - NGL</h1>
+        </div>
+        <div>
+            <button id="googleSignInBtn">Sign in / Sign up with Google</button>
+        </div>
+    </header>
+    <div class="container">
+        <h2>Enter Username (max 5 characters):</h2>
+        <input type="text" id="usernameInput" name="username" placeholder="Enter your username...">
+        <button id="submitBtn">Submit</button>
+        <div id="error"></div>
+        <div id="result"></div>
+        <button class="share-btn" id="shareBtn">Share Link</button>
+        <div id="inbox">
+            <h2>Inbox</h2>
+            <button id="getMessage">get message</button>
+            <div id="messageBox">
+                <!-- Messages will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const submitBtn = document.getElementById("submitBtn");
+            const shareBtn = document.getElementById("shareBtn");
+            const getMessageBtn = document.getElementById("getMessage");
+            const usernameInput = document.getElementById("usernameInput");
+            const resultDiv = document.getElementById("result");
+            const errorDiv = document.getElementById("error");
+            const messageBox = document.getElementById("messageBox");
+
+            // date format function
+            function formatDateString(dateString) {
+                const date = new Date(dateString);
+                const options = {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                };
+                return date.toLocaleDateString("en-US", options);
+            }
+
+            submitBtn.addEventListener("click", () => {
+                const username = usernameInput.value;
+                if (!username) {
+                    errorDiv.innerText = "Please enter a username.";
+                    return;
+                } else if (username.length > 5) {
+                    errorDiv.innerText = "Username length should not exceed 5 characters.";
+                    return;
+                }
+
+                fetch(`http://localhost:5500/user/onboard/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ username: username }),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (!data.uniqueLink || data.uniqueLink == undefined) {
+                            errorDiv.innerText = data.error;
+                            resultDiv.innerText = ""; // Clear previous result if any
+                        } else {
+                            errorDiv.innerText = ""; // Clear previous error if any
+                            resultDiv.innerText = `Generated Link =  http://localhost:5500/message/send/${data.uniqueLink}`; // Only display the link itself
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error:", error);
+                        errorDiv.innerText = "An error occurred while processing your request.";
+                        resultDiv.innerText = ""; // Clear previous result if any
+                    });
+            });
+
+            shareBtn.addEventListener("click", () => {
+                const generatedLink = resultDiv.innerText;
+                if (!generatedLink) {
+                    alert("No link to share. Please generate a link first.");
+                    return;
+                }
+
+                const url = generatedLink;
+                const reelUrl = url.split("=")[1];
+
+                const dummyInput = document.createElement("input");
+                document.body.appendChild(dummyInput);
+                dummyInput.setAttribute("value", reelUrl);
+                dummyInput.select();
+                document.execCommand("copy");
+                document.body.removeChild(dummyInput);
+                alert("Link copied to clipboard!");
+            });
+
+            getMessageBtn.addEventListener("click", () => {
+                const generatedLink = resultDiv.innerText;
+                console.log(generatedLink)
+                const param = generatedLink.split("/").pop()
+                console.log(param)
+                if (!generatedLink) {
+                    console.error("No generated link found.");
+                    return;
+                }
+
+                // Extracting the parameter part of the generated link 
+
+                fetch(`http://localhost:5500/message/all/${param}`)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(data)
+                        //    if (data.uniqueLink !== param) {
+                        //        // Clear the message box if the uniqueLink doesn't match the generated link
+                        //        messageBox.innerHTML = "<p>No messages found for this link.</p>";
+                        //        return;
+                        //    }
+
+                        // Display messages in the message box
+                        data.messages.forEach((message) => {
+                            const messageDiv = document.createElement("div");
+                            messageDiv.innerHTML = `<p><strong>${message.message}</strong></p><p>${formatDateString(message.createdAt)}</p>`;
+                            messageBox.appendChild(messageDiv);
+                        });
+                    })
+                    .catch((error) => {
+                        // Handle error if needed
+                        console.error("Error:", error);
+                    });
+            });
+
+
+        });
+
+
+    </script>
+</body>
+
+</html>
