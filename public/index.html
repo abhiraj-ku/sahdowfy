@@ -163,7 +163,7 @@
                     return;
                 }
 
-                fetch(`http://localhost:5500/user/onboard/`, {
+                fetch(`https://shadowfy.onrender.com/user/onboard/`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -177,7 +177,7 @@
                             resultDiv.innerText = ""; // Clear previous result if any
                         } else {
                             errorDiv.innerText = ""; // Clear previous error if any
-                            resultDiv.innerText = `Generated Link =  http://localhost:5500/message/send/${data.uniqueLink}`; // Only display the link itself
+                            resultDiv.innerText = `Generated Link =  https://shadowfy.onrender.com/message/send/${data.uniqueLink}`; // Only display the link itself
                         }
                     })
                     .catch((error) => {
@@ -218,7 +218,7 @@
 
                 // Extracting the parameter part of the generated link 
 
-                fetch(`http://localhost:5500/message/all/${param}`)
+                fetch(`https://shadowfy.onrender.com/message/all/${param}`)
                     .then((response) => response.json())
                     .then((data) => {
                         console.log(data)
