@@ -14,12 +14,23 @@ dotenv.config();
 connectDb();
 
 const PORT = process.env.PORT || 3000;
+app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 // Define middleware
 app.use(express.static(path.join(__dirname, "public")));
-app.use(express.json());
-app.use(cors());
+
+const whitelist = ["https://shadowfy.onrender.com"];
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (whitelist.indexOf(origin) !== -1 || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+};
+app.use(cors(corsOptions));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
